@@ -34,6 +34,10 @@ impl Game {
         }
     }
 
+    pub fn close_window(&mut self) {
+        self.window.set_should_close(true);
+    }
+
     pub fn get_time(&self) -> f64 {
         self.glfw.get_time()
     }
