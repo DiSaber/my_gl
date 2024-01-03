@@ -32,4 +32,8 @@ impl Game {
             self.glfw.poll_events();
         }
     }
+
+    pub fn get_time(&self) -> f64 {
+        self.glfw.get_time()
+    }
 }

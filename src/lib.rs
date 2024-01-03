@@ -11,8 +11,8 @@ mod vertex;
 
 pub use camera::Camera;
 pub use game::Game;
-pub use glfw;
-pub use image;
+pub use glfw::{self, Action, CursorMode, Key, WindowMode};
+pub use image::{self, ImageFormat};
 pub use mesh::Mesh;
 pub use mesh_object::MeshObject;
 pub use nalgebra as na;
