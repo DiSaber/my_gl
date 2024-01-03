@@ -20,12 +20,12 @@ impl Game {
         Self { glfw, window }
     }
 
-    pub fn run_update(&mut self, mut update_fn: impl FnMut(f64)) {
-        let mut last_frame_time = self.glfw.get_time();
+    pub fn run_update(&mut self, mut update_fn: impl FnMut(&mut Self, f64)) {
+        let mut last_frame_time = self.get_time();
 
         while !self.window.should_close() {
-            let current_time = self.glfw.get_time();
-            update_fn(current_time - last_frame_time);
+            let current_time = self.get_time();
+            update_fn(self, current_time - last_frame_time);
             last_frame_time = current_time;
 
             self.window.swap_buffers();
