@@ -1,3 +1,15 @@
+extern crate nalgebra as na;
+
+pub mod camera;
+pub mod mesh;
+pub mod mesh_object;
+pub mod shader;
+pub mod shader_program;
+pub mod texture;
+pub mod transform;
+pub mod utils;
+pub mod vertex;
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
