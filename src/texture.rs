@@ -1,3 +1,5 @@
+use image::DynamicImage;
+
 pub struct Texture {
     id: u32,
 }
@@ -7,7 +9,7 @@ impl Texture {
         self.id
     }
 
-    pub fn from_image_bytes(image: &[u8], format: image::ImageFormat) -> Self {
+    pub fn from_image_bytes(image: DynamicImage) -> Self {
         let mut texture = Self { id: 0 };
 
         unsafe {
@@ -24,9 +26,7 @@ impl Texture {
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         }
 
-        let image = image::load_from_memory_with_format(image, format)
-            .unwrap()
-            .into_rgba8();
+        let image = image.into_rgba8();
 
         unsafe {
             gl::TexImage2D(

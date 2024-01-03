@@ -1,26 +1,19 @@
 extern crate nalgebra as na;
 
-pub mod camera;
-pub mod mesh;
-pub mod mesh_object;
-pub mod shader;
-pub mod shader_program;
-pub mod texture;
-pub mod transform;
+mod camera;
+mod mesh;
+mod mesh_object;
+mod shader;
+mod shader_program;
+mod texture;
+mod transform;
 pub mod utils;
-pub mod vertex;
+mod vertex;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use camera::Camera;
+pub use mesh::Mesh;
+pub use mesh_object::MeshObject;
+pub use shader::{Shader, ShaderType};
+pub use shader_program::{ProgramValue, ShaderProgram};
+pub use texture::Texture;
+pub use vertex::Vertex;
