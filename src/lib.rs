@@ -11,7 +11,7 @@ mod vertex;
 
 pub use camera::Camera;
 pub use game::Game;
-pub use glfw::{self, Action, CursorMode, Key, WindowMode};
+pub use glfw::{self, Action, CursorMode as MouseMode, Key, WindowMode};
 pub use image::{self, ImageFormat};
 pub use mesh::Mesh;
 pub use mesh_object::MeshObject;

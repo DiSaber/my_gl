@@ -1,8 +1,9 @@
-use glfw::{Context, Glfw, PWindow, WindowMode};
+use crate::MouseMode;
+use glfw::{Action, Context, Glfw, Key, PWindow, WindowMode};
 
 pub struct Game {
     glfw: Glfw,
-    pub window: PWindow,
+    window: PWindow,
 }
 
 impl Game {
@@ -35,5 +36,21 @@ impl Game {
 
     pub fn get_time(&self) -> f64 {
         self.glfw.get_time()
+    }
+
+    pub fn get_key(&self, key: Key) -> Action {
+        self.window.get_key(key)
+    }
+
+    pub fn get_framebuffer_size(&self) -> (i32, i32) {
+        self.window.get_framebuffer_size()
+    }
+
+    pub fn set_mouse_mode(&mut self, mode: MouseMode) {
+        self.window.set_cursor_mode(mode);
+    }
+
+    pub fn get_mouse_position(&self) -> (f64, f64) {
+        self.window.get_cursor_pos()
     }
 }
