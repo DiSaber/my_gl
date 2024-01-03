@@ -1,4 +1,4 @@
-use na::{Vector2, Vector3};
+use crate::na::{Vector2, Vector3};
 
 #[repr(C)]
 pub struct Vertex {

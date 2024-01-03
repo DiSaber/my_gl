@@ -1,4 +1,4 @@
-use na::Matrix4;
+use crate::na::Matrix4;
 use std::ffi::CString;
 
 use crate::{shader::Shader, utils};

@@ -1,5 +1,5 @@
+use crate::na::{Matrix4, Perspective3};
 use crate::{mesh_object::MeshObject, transform::Transform};
-use na::{Matrix4, Perspective3};
 use palette::LinSrgba;
 
 pub struct Camera {

@@ -1,5 +1,5 @@
+use crate::na::{Vector2, Vector3};
 use crate::{texture::Texture, vertex::Vertex};
-use na::{Vector2, Vector3};
 
 pub struct Mesh {
     vao: u32,

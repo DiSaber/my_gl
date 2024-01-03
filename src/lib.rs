@@ -1,6 +1,5 @@
-extern crate nalgebra as na;
-
 mod camera;
+mod game;
 mod mesh;
 mod mesh_object;
 mod shader;
@@ -11,8 +10,13 @@ pub mod utils;
 mod vertex;
 
 pub use camera::Camera;
+pub use game::Game;
+pub use glfw;
+pub use image;
 pub use mesh::Mesh;
 pub use mesh_object::MeshObject;
+pub use nalgebra as na;
+pub use palette;
 pub use shader::{Shader, ShaderType};
 pub use shader_program::{ProgramValue, ShaderProgram};
 pub use texture::Texture;
