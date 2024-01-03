@@ -1,2 +1,2 @@
 # my_gl
-A small collection of opengl wrappers intended for use in my personal projects.
+An OpenGL based game engine library intended for use in my personal projects.
