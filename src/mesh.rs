@@ -1,11 +1,20 @@
 use crate::na::{Vector2, Vector3};
 use crate::{texture::Texture, vertex::Vertex};
 
+#[derive(Clone, Copy)]
+pub enum UsageType {
+    Static = gl::STATIC_DRAW as isize,
+    Dynamic = gl::DYNAMIC_DRAW as isize,
+}
+
 pub struct Mesh {
     vao: u32,
     vbo: u32,
     ebo: u32,
-    total_indices: i32,
+    vertex_buffer_size: usize,
+    face_buffer_size: usize,
+    total_faces: usize,
+    usage_type: UsageType,
 }
 
 impl Mesh {
@@ -21,14 +30,14 @@ impl Mesh {
             gl::BindVertexArray(self.vao);
             gl::DrawElements(
                 gl::TRIANGLES,
-                self.total_indices,
+                (self.total_faces * 3) as i32,
                 gl::UNSIGNED_INT,
                 0 as *const std::ffi::c_void,
             )
         }
     }
 
-    pub fn from_tobj(obj: &tobj::Mesh) -> Self {
+    pub fn from_tobj(obj: &tobj::Mesh, usage_type: UsageType) -> Self {
         let vertices = (0..(obj.positions.len() / 3))
             .map(|i| {
                 Vertex::new(
@@ -64,31 +73,36 @@ impl Mesh {
             })
             .collect::<Vec<Vector3<u32>>>();
 
-        Self::from_vertices(vertices, faces)
+        Self::from_vertices(vertices, faces, usage_type)
     }
 
-    pub fn from_vertices(vertices: Vec<Vertex>, faces: Vec<Vector3<u32>>) -> Self {
+    pub fn from_vertices(
+        vertices: Vec<Vertex>,
+        faces: Vec<Vector3<u32>>,
+        usage_type: UsageType,
+    ) -> Self {
         let mut mesh = Self {
             vao: 0,
             vbo: 0,
             ebo: 0,
-            total_indices: (faces.len() * 3) as i32,
+            vertex_buffer_size: vertices.len(),
+            face_buffer_size: faces.len(),
+            total_faces: faces.len(),
+            usage_type,
         };
         unsafe {
+            gl::GenVertexArrays(1, &mut mesh.vao);
             gl::GenBuffers(1, &mut mesh.vbo);
             gl::GenBuffers(1, &mut mesh.ebo);
-            gl::GenVertexArrays(1, &mut mesh.vao);
 
             gl::BindVertexArray(mesh.vao);
-        }
 
-        unsafe {
             gl::BindBuffer(gl::ARRAY_BUFFER, mesh.vbo);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
                 (vertices.len() * std::mem::size_of::<Vertex>()) as isize,
                 vertices.as_ptr() as *const gl::types::GLvoid,
-                gl::STATIC_DRAW,
+                usage_type as u32,
             );
 
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
@@ -96,7 +110,7 @@ impl Mesh {
                 gl::ELEMENT_ARRAY_BUFFER,
                 (faces.len() * std::mem::size_of::<Vector3<u32>>()) as isize,
                 faces.as_ptr() as *const gl::types::GLvoid,
-                gl::STATIC_DRAW,
+                usage_type as u32,
             );
         }
 
@@ -119,6 +133,62 @@ impl Mesh {
         }
 
         mesh
+    }
+
+    pub fn update_vertices(&mut self, vertices: Vec<Vertex>, faces: Vec<Vector3<u32>>) {
+        unsafe {
+            gl::BindVertexArray(self.vao);
+
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
+        }
+        if vertices.len() > self.vertex_buffer_size {
+            unsafe {
+                gl::BufferData(
+                    gl::ARRAY_BUFFER,
+                    (vertices.len() * std::mem::size_of::<Vertex>()) as isize,
+                    vertices.as_ptr() as *const gl::types::GLvoid,
+                    self.usage_type as u32,
+                );
+            }
+
+            self.vertex_buffer_size = vertices.len();
+        } else {
+            unsafe {
+                gl::BufferSubData(
+                    gl::ARRAY_BUFFER,
+                    0,
+                    (vertices.len() * std::mem::size_of::<Vertex>()) as isize,
+                    vertices.as_ptr() as *const gl::types::GLvoid,
+                )
+            }
+        }
+
+        unsafe {
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
+        }
+        if faces.len() > self.face_buffer_size {
+            unsafe {
+                gl::BufferData(
+                    gl::ELEMENT_ARRAY_BUFFER,
+                    (faces.len() * std::mem::size_of::<Vector3<u32>>()) as isize,
+                    faces.as_ptr() as *const gl::types::GLvoid,
+                    self.usage_type as u32,
+                );
+            }
+
+            self.face_buffer_size = faces.len();
+        } else {
+            unsafe {
+                gl::BufferSubData(
+                    gl::ELEMENT_ARRAY_BUFFER,
+                    0,
+                    (faces.len() * std::mem::size_of::<Vector3<u32>>()) as isize,
+                    faces.as_ptr() as *const gl::types::GLvoid,
+                );
+            }
+        }
+
+        self.total_faces = faces.len();
     }
 }
 

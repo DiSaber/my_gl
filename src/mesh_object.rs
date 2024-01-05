@@ -10,8 +10,8 @@ use crate::{
 
 pub struct MeshObject<'a> {
     pub mesh: &'a Mesh,
-    pub textures: Vec<&'a Texture>,
-    pub shader_program: &'a ShaderProgram,
+    textures: Vec<&'a Texture>,
+    shader_program: &'a ShaderProgram,
     pub transform: Transform,
 }
 

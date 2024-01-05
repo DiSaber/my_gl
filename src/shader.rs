@@ -10,6 +10,7 @@ pub enum ShaderType {
 
 pub struct Shader {
     id: u32,
+    shader_type: ShaderType,
 }
 
 impl Shader {
@@ -17,10 +18,15 @@ impl Shader {
         self.id
     }
 
+    pub fn get_shader_type(&self) -> ShaderType {
+        self.shader_type
+    }
+
     pub fn from_source(shader_source: &[u8], shader_type: ShaderType) -> Result<Self, CString> {
         let shader_source = CString::new(shader_source).unwrap();
         let shader = Self {
             id: unsafe { gl::CreateShader(shader_type as u32) },
+            shader_type,
         };
         unsafe {
             gl::ShaderSource(shader.id, 1, &shader_source.as_ptr(), std::ptr::null());
