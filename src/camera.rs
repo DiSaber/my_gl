@@ -4,7 +4,12 @@ use palette::LinSrgba;
 
 pub enum CameraType {
     Perspective(Perspective3<f32>),
-    Orthographic3(Orthographic3<f32>),
+    Orthographic(Orthographic3<f32>),
+}
+
+pub enum OrthographicType {
+    UI,
+    World { width: f32, height: f32 },
 }
 
 pub struct Camera {
@@ -35,17 +40,25 @@ impl Camera {
     }
 
     pub fn new_orthographic(
+        orthographic_type: OrthographicType,
         near_clipping_plane: f32,
         far_clipping_plane: f32,
         clear_color: LinSrgba,
     ) -> Self {
+        let (left, right, top, bottom) = match orthographic_type {
+            OrthographicType::UI => (0.0, 1.0, 0.0, 1.0),
+            OrthographicType::World { width, height } => {
+                (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
+            }
+        };
+
         Self {
             transform: Default::default(),
-            camera_type: CameraType::Orthographic3(Orthographic3::new(
-                -1.0,
-                1.0,
-                -1.0,
-                1.0,
+            camera_type: CameraType::Orthographic(Orthographic3::new(
+                left,
+                right,
+                bottom,
+                top,
                 near_clipping_plane,
                 far_clipping_plane,
             )),
@@ -62,7 +75,7 @@ impl Camera {
     pub fn get_projection_matrix(&self) -> Matrix4<f32> {
         match self.camera_type {
             CameraType::Perspective(perspective) => perspective.into(),
-            CameraType::Orthographic3(orthographic) => orthographic.into(),
+            CameraType::Orthographic(orthographic) => orthographic.into(),
         }
     }
 
@@ -89,6 +102,21 @@ impl Camera {
                 gl::Viewport(0, 0, screen_width, screen_height);
             }
             perspective.set_aspect((screen_width as f32) / (screen_height as f32));
+        }
+    }
+
+    /// Only applies to orthographic cameras
+    pub fn set_orthographic_type(&mut self, orthographic_type: OrthographicType) {
+        if let CameraType::Orthographic(orthographic) = &mut self.camera_type {
+            let (left, right, top, bottom) = match orthographic_type {
+                OrthographicType::UI => (0.0, 1.0, 0.0, 1.0),
+                OrthographicType::World { width, height } => {
+                    (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
+                }
+            };
+
+            orthographic.set_left_and_right(left, right);
+            orthographic.set_bottom_and_top(bottom, top);
         }
     }
 }

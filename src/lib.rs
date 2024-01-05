@@ -10,7 +10,7 @@ mod transform;
 pub mod utils;
 mod vertex;
 
-pub use camera::Camera;
+pub use camera::{Camera, CameraType, OrthographicType};
 pub use game::Game;
 pub use glfw::{self, Action, CursorMode as MouseMode, Key, WindowMode};
 pub use image::{self, ImageFormat};
