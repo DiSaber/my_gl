@@ -1,4 +1,5 @@
 mod camera;
+mod font;
 mod game;
 mod mesh;
 mod mesh_object;
