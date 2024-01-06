@@ -5,10 +5,10 @@ use palette::LinSrgba;
 #[derive(Clone, Copy)]
 pub enum CameraType {
     Perspective(Perspective3<f32>),
-    Orthographic(Orthographic3<f32>),
+    Orthographic(Orthographic3<f32>, OrthographicType),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OrthographicType {
     UI,
     World { width: f32, height: f32 },
@@ -57,19 +57,47 @@ impl Camera {
 
         Self {
             transform: Default::default(),
-            camera_type: CameraType::Orthographic(Orthographic3::new(
-                left,
-                right,
-                bottom,
-                top,
-                near_clipping_plane,
-                far_clipping_plane,
-            )),
+            camera_type: CameraType::Orthographic(
+                Orthographic3::new(
+                    left,
+                    right,
+                    bottom,
+                    top,
+                    near_clipping_plane,
+                    far_clipping_plane,
+                ),
+                orthographic_type,
+            ),
             clear_color,
         }
     }
 
-    pub fn draw_objects(&self, objects: &[&MeshObject]) {
+    pub fn draw_objects(&self, objects: &mut [&MeshObject]) {
+        if let CameraType::Orthographic(_, orthographic_type) = self.camera_type {
+            if orthographic_type == OrthographicType::UI {
+                unsafe {
+                    gl::Disable(gl::DEPTH_TEST);
+                }
+
+                objects.sort_unstable_by(|a, b| {
+                    a.transform
+                        .position
+                        .z
+                        .partial_cmp(&b.transform.position.z)
+                        .unwrap()
+                });
+
+                for object in objects {
+                    object.draw(self);
+                }
+                return;
+            }
+        }
+
+        unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+        }
+
         for object in objects {
             object.draw(self);
         }
@@ -78,7 +106,7 @@ impl Camera {
     pub fn get_projection_matrix(&self) -> Matrix4<f32> {
         match self.camera_type {
             CameraType::Perspective(perspective) => perspective.into(),
-            CameraType::Orthographic(orthographic) => orthographic.into(),
+            CameraType::Orthographic(orthographic, _) => orthographic.into(),
         }
     }
 
@@ -110,7 +138,9 @@ impl Camera {
 
     /// Only applies to orthographic cameras
     pub fn set_orthographic_type(&mut self, orthographic_type: OrthographicType) {
-        if let CameraType::Orthographic(orthographic) = &mut self.camera_type {
+        if let CameraType::Orthographic(orthographic, current_orthographic_type) =
+            &mut self.camera_type
+        {
             let (left, right, top, bottom) = match orthographic_type {
                 OrthographicType::UI => (0.0, 1.0, 0.0, 1.0),
                 OrthographicType::World { width, height } => {
@@ -120,6 +150,7 @@ impl Camera {
 
             orthographic.set_left_and_right(left, right);
             orthographic.set_bottom_and_top(bottom, top);
+            *current_orthographic_type = orthographic_type;
         }
     }
 }
