@@ -2,16 +2,19 @@ use crate::na::{Matrix4, Orthographic3, Perspective3};
 use crate::{mesh_object::MeshObject, transform::Transform};
 use palette::LinSrgba;
 
+#[derive(Clone, Copy)]
 pub enum CameraType {
     Perspective(Perspective3<f32>),
     Orthographic(Orthographic3<f32>),
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum OrthographicType {
     UI,
     World { width: f32, height: f32 },
 }
 
+#[derive(Clone, Copy)]
 pub struct Camera {
     pub transform: Transform,
     pub camera_type: CameraType,
