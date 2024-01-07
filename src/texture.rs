@@ -13,9 +13,18 @@ pub enum FilterMode {
     Nearest = gl::NEAREST as isize,
     Linear = gl::LINEAR as isize,
     NearestMipMapNearest = gl::NEAREST_MIPMAP_NEAREST as isize,
-    NearestMipMapLinear = gl::NEAREST_MIPMAP_LINEAR as isize,
     LinearMipMapNearest = gl::LINEAR_MIPMAP_NEAREST as isize,
+    NearestMipMapLinear = gl::NEAREST_MIPMAP_LINEAR as isize,
     LinearMipMapLinear = gl::LINEAR_MIPMAP_LINEAR as isize,
+}
+
+impl FilterMode {
+    pub fn is_mipmap(&self) -> bool {
+        *self == FilterMode::NearestMipMapNearest
+            || *self == FilterMode::LinearMipMapNearest
+            || *self == FilterMode::NearestMipMapLinear
+            || *self == FilterMode::LinearMipMapLinear
+    }
 }
 
 pub struct Texture {
@@ -68,23 +77,8 @@ impl Texture {
                 image.as_raw().as_ptr() as *const gl::types::GLvoid,
             );
 
-            match min_filter_mode {
-                FilterMode::LinearMipMapLinear
-                | FilterMode::LinearMipMapNearest
-                | FilterMode::NearestMipMapLinear
-                | FilterMode::NearestMipMapNearest => {
-                    gl::GenerateMipmap(gl::TEXTURE_2D);
-                    return texture;
-                }
-                _ => (),
-            }
-
-            match mag_filter_mode {
-                FilterMode::LinearMipMapLinear
-                | FilterMode::LinearMipMapNearest
-                | FilterMode::NearestMipMapLinear
-                | FilterMode::NearestMipMapNearest => gl::GenerateMipmap(gl::TEXTURE_2D),
-                _ => (),
+            if min_filter_mode.is_mipmap() || mag_filter_mode.is_mipmap() {
+                gl::GenerateMipmap(gl::TEXTURE_2D);
             }
         }
 
