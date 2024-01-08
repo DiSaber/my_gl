@@ -57,46 +57,48 @@ impl<'a> TextObject<'a> {
         for (i, char) in text.chars().enumerate() {
             let char_info = character_map[&char];
 
-            let char_x = x + (char_info.bearing_x * font_scale);
+            if char != ' ' {
+                let char_x = x + (char_info.bearing_x * font_scale);
 
-            let char_width = char_info.width * font_scale;
-            let char_height = font.get_font_height() * font_scale;
+                let char_width = char_info.width * font_scale;
+                let char_height = font.get_font_height() * font_scale;
 
-            // TODO: Add multiline support
-            vertices.append(&mut vec![
-                // Top right
-                Vertex::tex(
-                    Vector3::new(char_x + char_width, y, 0.0),
-                    char_info.top_right_tex_coord,
-                ),
-                // Bottom right
-                Vertex::tex(
-                    Vector3::new(char_x + char_width, y - char_height, 0.0),
-                    Vector2::new(
-                        char_info.top_right_tex_coord.x,
-                        char_info.bottom_left_tex_coord.y,
+                // TODO: Add multiline support
+                vertices.append(&mut vec![
+                    // Top right
+                    Vertex::tex(
+                        Vector3::new(char_x + char_width, y, 0.0),
+                        char_info.top_right_tex_coord,
                     ),
-                ),
-                // Bottom left
-                Vertex::tex(
-                    Vector3::new(char_x, y - char_height, 0.0),
-                    char_info.bottom_left_tex_coord,
-                ),
-                // Top left
-                Vertex::tex(
-                    Vector3::new(char_x, y, 0.0),
-                    Vector2::new(
-                        char_info.bottom_left_tex_coord.x,
-                        char_info.top_right_tex_coord.y,
+                    // Bottom right
+                    Vertex::tex(
+                        Vector3::new(char_x + char_width, y - char_height, 0.0),
+                        Vector2::new(
+                            char_info.top_right_tex_coord.x,
+                            char_info.bottom_left_tex_coord.y,
+                        ),
                     ),
-                ),
-            ]);
+                    // Bottom left
+                    Vertex::tex(
+                        Vector3::new(char_x, y - char_height, 0.0),
+                        char_info.bottom_left_tex_coord,
+                    ),
+                    // Top left
+                    Vertex::tex(
+                        Vector3::new(char_x, y, 0.0),
+                        Vector2::new(
+                            char_info.bottom_left_tex_coord.x,
+                            char_info.top_right_tex_coord.y,
+                        ),
+                    ),
+                ]);
 
-            let i = i as u32;
-            faces.append(&mut vec![
-                Vector3::new(0 + (i * 4), 1 + (i * 4), 3 + (i * 4)),
-                Vector3::new(1 + (i * 4), 2 + (i * 4), 3 + (i * 4)),
-            ]);
+                let i = i as u32;
+                faces.append(&mut vec![
+                    Vector3::new(0 + (i * 4), 1 + (i * 4), 3 + (i * 4)),
+                    Vector3::new(1 + (i * 4), 2 + (i * 4), 3 + (i * 4)),
+                ]);
+            }
 
             x += char_info.advance;
         }

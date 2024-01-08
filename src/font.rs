@@ -35,11 +35,11 @@ impl Font {
         let set_width = {
             let min_x = glyphs
                 .first()
-                .map(|g| g.pixel_bounding_box().unwrap().min.x)
+                .map(|g| g.pixel_bounding_box().unwrap_or_default().min.x)
                 .unwrap();
             let max_x = glyphs
                 .last()
-                .map(|g| g.pixel_bounding_box().unwrap().max.x)
+                .map(|g| g.pixel_bounding_box().unwrap_or_default().max.x)
                 .unwrap();
             (max_x - min_x) as f32
         };
@@ -48,7 +48,7 @@ impl Font {
         let mut character_map = HashMap::<char, Character>::new();
 
         for (i, glyph) in glyphs.into_iter().enumerate() {
-            let bounding_box = glyph.pixel_bounding_box().unwrap();
+            let bounding_box = glyph.pixel_bounding_box().unwrap_or_default();
             let bottom_left_tex_coord = Vector2::new((bounding_box.min.x as f32) / set_width, 1.0);
             let top_right_tex_coord = Vector2::new((bounding_box.max.x as f32) / set_width, 0.0);
             let h_metrics = glyph.unpositioned().h_metrics();
