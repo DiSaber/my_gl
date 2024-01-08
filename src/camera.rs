@@ -143,10 +143,11 @@ impl Camera {
 
     /// Applies to all cameras
     pub fn set_screen_size(&mut self, (screen_width, screen_height): (u32, u32)) {
+        unsafe {
+            gl::Viewport(0, 0, screen_width as i32, screen_height as i32);
+        }
+
         if let CameraType::Perspective(perspective) = &mut self.camera_type {
-            unsafe {
-                gl::Viewport(0, 0, screen_width as i32, screen_height as i32);
-            }
             perspective.set_aspect((screen_width as f32) / (screen_height as f32));
         } else if let CameraType::Orthographic(orthographic, orthographic_type) =
             &mut self.camera_type
