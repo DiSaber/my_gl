@@ -1,11 +1,7 @@
-use nalgebra::Matrix4;
-
 use crate::{
-    camera::Camera,
-    mesh::Mesh,
+    na::Matrix4,
     shader_program::{ProgramValue, ShaderProgram},
-    texture::Texture,
-    transform::Transform,
+    Camera, GameObject, Mesh, Texture, Transform,
 };
 
 #[derive(Clone)]
@@ -29,17 +25,12 @@ impl<'a> MeshObject<'a> {
             transform: Default::default(),
         };
 
-        for (i, _) in mesh_object.textures.iter().enumerate() {
-            mesh_object.shader_program.set_value(
-                &("texture".to_owned() + &i.to_string()),
-                ProgramValue::Int(i as i32),
-            )
-        }
-
         mesh_object
     }
+}
 
-    pub fn draw(&self, camera: &Camera) {
+impl<'a> GameObject for MeshObject<'a> {
+    fn draw(&mut self, camera: &Camera) {
         self.shader_program.set_value(
             "transform",
             ProgramValue::Mat4(
@@ -48,10 +39,15 @@ impl<'a> MeshObject<'a> {
                     * self.get_transform_matrix(),
             ),
         );
+
         self.mesh.draw(&self.textures);
     }
 
-    pub fn get_transform_matrix(&self) -> Matrix4<f32> {
+    fn get_transform(&self) -> Transform {
+        self.transform
+    }
+
+    fn get_transform_matrix(&self) -> Matrix4<f32> {
         self.transform.to_matrix(false)
     }
 }

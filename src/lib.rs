@@ -1,6 +1,7 @@
 mod camera;
 mod font;
 mod game;
+mod gameobject;
 mod mesh;
 mod mesh_object;
 mod shader;
@@ -12,14 +13,18 @@ pub mod utils;
 mod vertex;
 
 pub use camera::{Camera, CameraType, OrthographicType};
+pub use font::Font;
 pub use game::Game;
+pub use gameobject::GameObject;
 pub use glfw::{self, Action, CursorMode as MouseMode, Key, WindowMode};
-pub use image::{self, ImageFormat};
+pub use image;
 pub use mesh::{Mesh, UsageType};
 pub use mesh_object::MeshObject;
 pub use nalgebra as na;
 pub use palette;
 pub use shader::{Shader, ShaderType};
 pub use shader_program::{ProgramValue, ShaderProgram};
-pub use texture::Texture;
+pub use text_object::TextObject;
+pub use texture::{FilterMode, Texture, WrapMode};
+pub use transform::Transform;
 pub use vertex::Vertex;

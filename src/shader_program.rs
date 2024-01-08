@@ -1,7 +1,9 @@
-use crate::na::Matrix4;
 use std::ffi::CString;
 
-use crate::{shader::Shader, utils};
+use crate::{
+    na::{Matrix4, Vector4},
+    utils, Shader,
+};
 
 pub struct ShaderProgram {
     id: u32,
@@ -23,7 +25,10 @@ impl ShaderProgram {
                 gl::Uniform1i(location, int);
             },
             ProgramValue::Mat4(mat) => unsafe {
-                gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.as_ptr())
+                gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.as_ptr());
+            },
+            ProgramValue::Vec4(vec) => unsafe {
+                gl::Uniform4f(location, vec.x, vec.y, vec.z, vec.w);
             },
         };
     }
@@ -71,6 +76,14 @@ impl ShaderProgram {
             gl::DetachShader(program.id, fragment_shader.get_id());
         }
 
+        // 32 texture units
+        for i in 0..31 {
+            program.set_value(
+                &("texture".to_owned() + &i.to_string()),
+                ProgramValue::Int(i as i32),
+            )
+        }
+
         Ok(program)
     }
 }
@@ -87,4 +100,5 @@ impl Drop for ShaderProgram {
 pub enum ProgramValue {
     Int(i32),
     Mat4(Matrix4<f32>),
+    Vec4(Vector4<f32>),
 }
