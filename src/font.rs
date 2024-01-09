@@ -57,7 +57,7 @@ impl Font {
                             (px_bounds.max.x + 1.0) / texture_width,
                             0.0,
                         ),
-                        width: px_bounds.width(),
+                        width: px_bounds.width() + 1.0,
                         bearing_x,
                         advance,
                     },
