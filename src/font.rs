@@ -49,8 +49,14 @@ impl Font {
                 character_map.insert(
                     char,
                     Character {
-                        bottom_left_tex_coord: Vector2::new(px_bounds.min.x / texture_width, 1.0),
-                        top_right_tex_coord: Vector2::new(px_bounds.max.x / texture_width, 0.0),
+                        bottom_left_tex_coord: Vector2::new(
+                            px_bounds.min.x / texture_width,
+                            px_bounds.max.y / texture_height,
+                        ),
+                        top_right_tex_coord: Vector2::new(
+                            px_bounds.max.x / texture_width,
+                            px_bounds.min.y / texture_height,
+                        ),
                         size: Vector2::new(
                             px_bounds.max.x - px_bounds.min.x,
                             px_bounds.max.y - px_bounds.min.y,
