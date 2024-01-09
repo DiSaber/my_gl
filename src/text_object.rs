@@ -65,7 +65,7 @@ impl<'a> TextObject<'a> {
                 let char_height = font.get_char_height() * font_scale;
 
                 println!(
-                    "{char} {char_x} {char_y} {char_width} {char_height} {} {}",
+                    "{char} {char_x} {char_y} {char_width} {char_height} {:?} {:?}",
                     char_info.bottom_left_tex_coord, char_info.top_right_tex_coord
                 );
 
