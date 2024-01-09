@@ -53,19 +53,18 @@ impl<'a> TextObject<'a> {
         let font_scale = Font::font_scale(font_size as f32);
 
         let mut x = 0.0_f32;
-        let y = 0.0_f32;
+        let mut y = 0.0_f32;
         for char in text.chars() {
             let char_info = character_map[&char];
 
             if !char.is_whitespace() {
                 let char_x = x + (char_info.bearing_x * font_scale);
                 let char_y = y;
-
                 let char_width = char_info.width * font_scale;
                 let char_height = font.get_char_height() * font_scale;
 
                 let face_offset = (vertices.len() / 4) as u32;
-                // TODO: Add multiline support
+
                 vertices.append(&mut vec![
                     // Top right
                     Vertex::tex(
@@ -107,6 +106,10 @@ impl<'a> TextObject<'a> {
                         3 + (face_offset * 4),
                     ),
                 ]);
+            } else if char == '\n' {
+                x = 0.0;
+                y += font.get_line_distance() * font_scale;
+                continue;
             }
 
             x += char_info.advance * font_scale;
