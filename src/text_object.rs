@@ -55,64 +55,63 @@ impl<'a> TextObject<'a> {
         let mut x = 0.0_f32;
         let mut y = 0.0_f32;
         for char in text.chars() {
-            let char_info = character_map[&char];
+            if let Some(char_info) = character_map.get(&char) {
+                if !char.is_whitespace() {
+                    let char_x = x + (char_info.bearing_x * font_scale);
+                    let char_y = y;
+                    let char_width = char_info.width * font_scale;
+                    let char_height = font.get_char_height() * font_scale;
 
-            if !char.is_whitespace() {
-                let char_x = x + (char_info.bearing_x * font_scale);
-                let char_y = y;
-                let char_width = char_info.width * font_scale;
-                let char_height = font.get_char_height() * font_scale;
+                    let face_offset = (vertices.len() / 4) as u32;
 
-                let face_offset = (vertices.len() / 4) as u32;
-
-                vertices.append(&mut vec![
-                    // Top right
-                    Vertex::tex(
-                        Vector3::new(char_x + char_width, char_y, 0.0),
-                        char_info.top_right_tex_coord,
-                    ),
-                    // Bottom right
-                    Vertex::tex(
-                        Vector3::new(char_x + char_width, char_y + char_height, 0.0),
-                        Vector2::new(
-                            char_info.top_right_tex_coord.x,
-                            char_info.bottom_left_tex_coord.y,
+                    vertices.append(&mut vec![
+                        // Top right
+                        Vertex::tex(
+                            Vector3::new(char_x + char_width, char_y, 0.0),
+                            char_info.top_right_tex_coord,
                         ),
-                    ),
-                    // Bottom left
-                    Vertex::tex(
-                        Vector3::new(char_x, char_y + char_height, 0.0),
-                        char_info.bottom_left_tex_coord,
-                    ),
-                    // Top left
-                    Vertex::tex(
-                        Vector3::new(char_x, char_y, 0.0),
-                        Vector2::new(
-                            char_info.bottom_left_tex_coord.x,
-                            char_info.top_right_tex_coord.y,
+                        // Bottom right
+                        Vertex::tex(
+                            Vector3::new(char_x + char_width, char_y + char_height, 0.0),
+                            Vector2::new(
+                                char_info.top_right_tex_coord.x,
+                                char_info.bottom_left_tex_coord.y,
+                            ),
                         ),
-                    ),
-                ]);
+                        // Bottom left
+                        Vertex::tex(
+                            Vector3::new(char_x, char_y + char_height, 0.0),
+                            char_info.bottom_left_tex_coord,
+                        ),
+                        // Top left
+                        Vertex::tex(
+                            Vector3::new(char_x, char_y, 0.0),
+                            Vector2::new(
+                                char_info.bottom_left_tex_coord.x,
+                                char_info.top_right_tex_coord.y,
+                            ),
+                        ),
+                    ]);
 
-                faces.append(&mut vec![
-                    Vector3::new(
-                        0 + (face_offset * 4),
-                        1 + (face_offset * 4),
-                        3 + (face_offset * 4),
-                    ),
-                    Vector3::new(
-                        1 + (face_offset * 4),
-                        2 + (face_offset * 4),
-                        3 + (face_offset * 4),
-                    ),
-                ]);
+                    faces.append(&mut vec![
+                        Vector3::new(
+                            0 + (face_offset * 4),
+                            1 + (face_offset * 4),
+                            3 + (face_offset * 4),
+                        ),
+                        Vector3::new(
+                            1 + (face_offset * 4),
+                            2 + (face_offset * 4),
+                            3 + (face_offset * 4),
+                        ),
+                    ]);
+                }
+
+                x += char_info.advance * font_scale;
             } else if char == '\n' {
                 x = 0.0;
                 y += font.get_line_distance() * font_scale;
-                continue;
             }
-
-            x += char_info.advance * font_scale;
         }
 
         (vertices, faces)
