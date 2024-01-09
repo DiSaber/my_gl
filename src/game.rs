@@ -1,4 +1,4 @@
-use crate::MouseMode;
+use crate::{na::Vector2, MouseMode};
 use glfw::{Action, Context, Glfw, Key, PWindow, WindowMode};
 
 pub struct Game {
@@ -52,9 +52,9 @@ impl Game {
         self.window.get_key(key)
     }
 
-    pub fn get_framebuffer_size(&self) -> (u32, u32) {
+    pub fn get_framebuffer_size(&self) -> Vector2<u32> {
         let (x, y) = self.window.get_framebuffer_size();
-        (x as u32, y as u32)
+        Vector2::new(x as u32, y as u32)
     }
 
     pub fn set_mouse_mode(&mut self, mode: MouseMode) {

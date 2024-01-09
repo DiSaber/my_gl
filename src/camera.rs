@@ -1,5 +1,5 @@
 use crate::{
-    na::{Matrix4, Orthographic3, Perspective3},
+    na::{Matrix4, Orthographic3, Perspective3, Vector2},
     GameObject, Transform,
 };
 use palette::LinSrgba;
@@ -35,7 +35,7 @@ pub struct Camera {
 impl Camera {
     pub fn new_perspective(
         fov: f32,
-        (screen_width, screen_height): (u32, u32),
+        screen_size: Vector2<u32>,
         near_clipping_plane: f32,
         far_clipping_plane: f32,
         clear_color: LinSrgba,
@@ -43,7 +43,7 @@ impl Camera {
         Self {
             transform: Default::default(),
             camera_type: CameraType::Perspective(Perspective3::new(
-                (screen_width as f32) / (screen_height as f32),
+                (screen_size.x as f32) / (screen_size.y as f32),
                 fov.to_radians(),
                 near_clipping_plane,
                 far_clipping_plane,
@@ -54,18 +54,18 @@ impl Camera {
 
     pub fn new_orthographic(
         orthographic_type: OrthographicType,
-        (screen_width, screen_height): (u32, u32),
+        screen_size: Vector2<u32>,
         near_clipping_plane: f32,
         far_clipping_plane: f32,
         clear_color: LinSrgba,
     ) -> Self {
         let (left, right, top, bottom) = match orthographic_type {
             OrthographicType::UI { height } => {
-                let width = height * ((screen_width as f32) / (screen_height as f32));
+                let width = height * ((screen_size.x as f32) / (screen_size.y as f32));
                 (0.0, width, 0.0, height)
             }
             OrthographicType::World { height } => {
-                let width = height * ((screen_width as f32) / (screen_height as f32));
+                let width = height * ((screen_size.x as f32) / (screen_size.y as f32));
                 (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
             }
         };
@@ -142,23 +142,23 @@ impl Camera {
     }
 
     /// Applies to all cameras
-    pub fn set_screen_size(&mut self, (screen_width, screen_height): (u32, u32)) {
+    pub fn set_screen_size(&mut self, screen_size: Vector2<u32>) {
         unsafe {
-            gl::Viewport(0, 0, screen_width as i32, screen_height as i32);
+            gl::Viewport(0, 0, screen_size.x as i32, screen_size.y as i32);
         }
 
         if let CameraType::Perspective(perspective) = &mut self.camera_type {
-            perspective.set_aspect((screen_width as f32) / (screen_height as f32));
+            perspective.set_aspect((screen_size.x as f32) / (screen_size.y as f32));
         } else if let CameraType::Orthographic(orthographic, orthographic_type) =
             &mut self.camera_type
         {
             let (left, right, top, bottom) = match *orthographic_type {
                 OrthographicType::UI { height } => {
-                    let width = height * ((screen_width as f32) / (screen_height as f32));
+                    let width = height * ((screen_size.x as f32) / (screen_size.y as f32));
                     (0.0, width, 0.0, height)
                 }
                 OrthographicType::World { height } => {
-                    let width = height * ((screen_width as f32) / (screen_height as f32));
+                    let width = height * ((screen_size.x as f32) / (screen_size.y as f32));
                     (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
                 }
             };
