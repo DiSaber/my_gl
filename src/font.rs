@@ -53,8 +53,10 @@ impl Font {
             let top_right_tex_coord = Vector2::new((bounding_box.max.x as f32) / set_width, 0.0);
             let h_metrics = glyph.unpositioned().h_metrics();
 
+            let char = CHARACTER_SET.chars().nth(i).unwrap();
+
             character_map.insert(
-                CHARACTER_SET.chars().nth(i).unwrap(),
+                char,
                 Character {
                     bottom_left_tex_coord,
                     top_right_tex_coord,
@@ -64,13 +66,15 @@ impl Font {
                 },
             );
 
-            glyph.draw(|x, y, v| {
-                texture.put_pixel(
-                    x + bounding_box.min.x as u32,
-                    y + bounding_box.min.y as u32,
-                    Rgba([255, 255, 255, (v * 255.0) as u8]),
-                )
-            });
+            if char != ' ' {
+                glyph.draw(|x, y, v| {
+                    texture.put_pixel(
+                        x + bounding_box.min.x as u32,
+                        y + bounding_box.min.y as u32,
+                        Rgba([255, 255, 255, (v * 255.0) as u8]),
+                    )
+                });
+            }
         }
 
         Some(Self {
