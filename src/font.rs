@@ -52,8 +52,14 @@ impl Font {
                 character_map.insert(
                     char,
                     Character {
-                        bottom_left_tex_coord: Vector2::new(px_bounds.min.x / texture_width, 1.0),
-                        top_right_tex_coord: Vector2::new(px_bounds.max.x / texture_width, 0.0),
+                        bottom_left_tex_coord: Vector2::new(
+                            px_bounds.min.x.floor() / texture_width,
+                            1.0,
+                        ),
+                        top_right_tex_coord: Vector2::new(
+                            px_bounds.max.x.ceil() / texture_width,
+                            0.0,
+                        ),
                         width: px_bounds.width(),
                         bearing_x,
                         advance,
