@@ -43,7 +43,7 @@ impl Font {
                 Vector2::new(font.h_side_bearing(glyph_id), font.v_side_bearing(glyph_id));
 
             if let Some(glyph) = font.outline_glyph(
-                glyph_id.with_scale_and_position(font.scale, point(total_advance, 0.0)),
+                glyph_id.with_scale_and_position(font.scale, point(total_advance, font.ascent())),
             ) {
                 let px_bounds = glyph.px_bounds();
                 character_map.insert(
