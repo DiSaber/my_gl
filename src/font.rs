@@ -77,6 +77,8 @@ impl Font {
             total_advance += advance;
         }
 
+        texture.save("./font_output.png").unwrap();
+
         Ok(Self {
             font_texture: Texture::from_image(
                 texture,
