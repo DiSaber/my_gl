@@ -72,7 +72,7 @@ impl<'a> TextObject<'a> {
                     ),
                     // Bottom right
                     Vertex::tex(
-                        Vector3::new(char_x + char_width, y - char_height, 0.0),
+                        Vector3::new(char_x + char_width, y + char_height, 0.0),
                         Vector2::new(
                             char_info.top_right_tex_coord.x,
                             char_info.bottom_left_tex_coord.y,
@@ -80,7 +80,7 @@ impl<'a> TextObject<'a> {
                     ),
                     // Bottom left
                     Vertex::tex(
-                        Vector3::new(char_x, y - char_height, 0.0),
+                        Vector3::new(char_x, y + char_height, 0.0),
                         char_info.bottom_left_tex_coord,
                     ),
                     // Top left
