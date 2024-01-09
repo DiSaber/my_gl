@@ -57,14 +57,12 @@ impl<'a> TextObject<'a> {
         for (i, char) in text.chars().enumerate() {
             let char_info = character_map[&char];
 
-            if char != ' ' {
-                let char_x = x + (char_info.bearing.x * font_scale);
-                let char_y = y + ((char_info.size.y - char_info.bearing.y) * font_scale);
+            if !char.is_whitespace() {
+                let char_x = x + (char_info.bearing_x * font_scale);
+                let char_y = y;
 
-                println!("{char} {} {}", char_info.size.y, char_info.bearing.y);
-
-                let char_width = char_info.size.x * font_scale;
-                let char_height = char_info.size.y * font_scale;
+                let char_width = char_info.width * font_scale;
+                let char_height = font.get_char_height() * font_scale;
 
                 // TODO: Add multiline support
                 vertices.append(&mut vec![

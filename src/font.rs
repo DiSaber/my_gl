@@ -11,14 +11,15 @@ const CHARACTER_SET: &str = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQ
 pub struct Character {
     pub bottom_left_tex_coord: Vector2<f32>,
     pub top_right_tex_coord: Vector2<f32>,
-    pub size: Vector2<f32>,
-    pub bearing: Vector2<f32>,
+    pub width: f32,
+    pub bearing_x: f32,
     pub advance: f32,
 }
 
 pub struct Font {
     font_texture: Texture,
     character_map: HashMap<char, Character>,
+    char_height: f32,
     line_distance: f32,
 }
 
@@ -31,7 +32,7 @@ impl Font {
             .chars()
             .map(|c| font.h_advance(font.glyph_id(c)))
             .sum::<f32>();
-        let texture_height = font.height();
+        let texture_height = font.height().ceil();
         let mut texture = DynamicImage::new_rgba8(texture_width as u32, texture_height as u32);
         let mut character_map = HashMap::<char, Character>::new();
         let mut total_advance = 0.0_f32;
@@ -39,8 +40,7 @@ impl Font {
         for char in CHARACTER_SET.chars() {
             let glyph_id = font.glyph_id(char);
             let advance = font.h_advance(glyph_id);
-            let bearing =
-                Vector2::new(font.h_side_bearing(glyph_id), font.v_side_bearing(glyph_id));
+            let bearing_x = font.h_side_bearing(glyph_id);
 
             if let Some(glyph) = font.outline_glyph(
                 glyph_id.with_scale_and_position(font.scale, point(total_advance, font.ascent())),
@@ -49,19 +49,10 @@ impl Font {
                 character_map.insert(
                     char,
                     Character {
-                        bottom_left_tex_coord: Vector2::new(
-                            px_bounds.min.x / texture_width,
-                            -px_bounds.min.y / texture_height,
-                        ),
-                        top_right_tex_coord: Vector2::new(
-                            px_bounds.max.x / texture_width,
-                            px_bounds.max.y / texture_height,
-                        ),
-                        size: Vector2::new(
-                            px_bounds.max.x - px_bounds.min.x,
-                            px_bounds.max.y - px_bounds.min.y,
-                        ),
-                        bearing,
+                        bottom_left_tex_coord: Vector2::new(px_bounds.min.x / texture_width, 1.0),
+                        top_right_tex_coord: Vector2::new(px_bounds.max.x / texture_width, 0.0),
+                        width: px_bounds.max.x - px_bounds.min.x,
+                        bearing_x,
                         advance,
                     },
                 );
@@ -72,14 +63,14 @@ impl Font {
                         Rgba([255, 255, 255, (v * 255.0) as u8]),
                     )
                 });
-            } else if char == ' ' {
+            } else if char.is_whitespace() {
                 character_map.insert(
                     char,
                     Character {
                         bottom_left_tex_coord: Vector2::zeros(),
                         top_right_tex_coord: Vector2::zeros(),
-                        size: Vector2::zeros(),
-                        bearing,
+                        width: 0.0,
+                        bearing_x,
                         advance,
                     },
                 );
@@ -98,6 +89,7 @@ impl Font {
                 FilterMode::Linear,
             ),
             character_map,
+            char_height: texture_height,
             line_distance: font.height() + font.line_gap(),
         })
     }
@@ -108,6 +100,10 @@ impl Font {
 
     pub fn get_texture(&self) -> &Texture {
         &self.font_texture
+    }
+
+    pub fn get_char_height(&self) -> f32 {
+        self.char_height
     }
 
     pub fn get_line_distance(&self) -> f32 {
