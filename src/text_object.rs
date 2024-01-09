@@ -58,21 +58,22 @@ impl<'a> TextObject<'a> {
             let char_info = character_map[&char];
 
             if char != ' ' {
-                let char_x = x + (char_info.bearing_x * font_scale);
+                let char_x = x + (char_info.bearing.x * font_scale);
+                let char_y = y + ((char_info.size.y - char_info.bearing.y) * font_scale);
 
-                let char_width = char_info.width * font_scale;
-                let char_height = font.get_font_height() * font_scale;
+                let char_width = char_info.size.x * font_scale;
+                let char_height = char_info.size.y * font_scale;
 
                 // TODO: Add multiline support
                 vertices.append(&mut vec![
                     // Top right
                     Vertex::tex(
-                        Vector3::new(char_x + char_width, y, 0.0),
+                        Vector3::new(char_x + char_width, char_y, 0.0),
                         char_info.top_right_tex_coord,
                     ),
                     // Bottom right
                     Vertex::tex(
-                        Vector3::new(char_x + char_width, y + char_height, 0.0),
+                        Vector3::new(char_x + char_width, char_y + char_height, 0.0),
                         Vector2::new(
                             char_info.top_right_tex_coord.x,
                             char_info.bottom_left_tex_coord.y,
@@ -80,12 +81,12 @@ impl<'a> TextObject<'a> {
                     ),
                     // Bottom left
                     Vertex::tex(
-                        Vector3::new(char_x, y + char_height, 0.0),
+                        Vector3::new(char_x, char_y + char_height, 0.0),
                         char_info.bottom_left_tex_coord,
                     ),
                     // Top left
                     Vertex::tex(
-                        Vector3::new(char_x, y, 0.0),
+                        Vector3::new(char_x, char_y, 0.0),
                         Vector2::new(
                             char_info.bottom_left_tex_coord.x,
                             char_info.top_right_tex_coord.y,
