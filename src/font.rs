@@ -37,16 +37,11 @@ impl Font {
         let mut character_map = HashMap::<char, Character>::new();
 
         let mut total_advance = 0.0_f32;
-        let mut last_char: Option<GlyphId> = None;
 
         for char in CHARACTER_SET.chars() {
             let glyph_id = font.glyph_id(char);
             let advance = font.h_advance(glyph_id);
             let bearing_x = font.h_side_bearing(glyph_id);
-
-            if let Some(last_char) = last_char {
-                total_advance += font.kern(last_char, glyph_id);
-            }
 
             if let Some(glyph) = font.outline_glyph(
                 glyph_id.with_scale_and_position(font.scale, point(total_advance, font.ascent())),
@@ -82,8 +77,7 @@ impl Font {
                 );
             }
 
-            last_char = Some(glyph_id);
-            total_advance += advance;
+            total_advance += advance + 8.0;
         }
 
         texture.save("./font_output.png").unwrap();
