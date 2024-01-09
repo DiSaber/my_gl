@@ -115,7 +115,7 @@ impl Font {
     }
 
     pub fn default_font_size() -> f32 {
-        32.0
+        96.0
     }
 
     pub fn default_spacing() -> f32 {
