@@ -59,7 +59,11 @@ impl Font {
                     },
                 );
                 glyph.draw(|x, y, v| {
-                    texture.put_pixel(x, y, Rgba([255, 255, 255, (v * 255.0) as u8]))
+                    texture.put_pixel(
+                        x + total_advance as u32,
+                        y,
+                        Rgba([255, 255, 255, (v * 255.0) as u8]),
+                    )
                 });
             } else if char == ' ' {
                 character_map.insert(
