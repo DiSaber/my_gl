@@ -32,6 +32,7 @@ impl Font {
             .map(|c| font.h_advance(font.glyph_id(c)))
             .sum::<f32>();
         let texture_height = font.height();
+        println!("{texture_height}");
         let mut texture = DynamicImage::new_rgba8(texture_width as u32, texture_height as u32);
         let mut character_map = HashMap::<char, Character>::new();
         let mut total_advance = 0.0_f32;
@@ -51,11 +52,11 @@ impl Font {
                     Character {
                         bottom_left_tex_coord: Vector2::new(
                             px_bounds.min.x / texture_width,
-                            px_bounds.max.y / texture_height,
+                            -px_bounds.min.y / texture_height,
                         ),
                         top_right_tex_coord: Vector2::new(
                             px_bounds.max.x / texture_width,
-                            px_bounds.min.y / texture_height,
+                            px_bounds.max.y / texture_height,
                         ),
                         size: Vector2::new(
                             px_bounds.max.x - px_bounds.min.x,
