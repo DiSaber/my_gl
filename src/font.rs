@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{na::Vector2, FilterMode, Texture, WrapMode};
-use ab_glyph::{point, Font as ab_Font, FontRef, GlyphId, InvalidFont, ScaleFont};
+use ab_glyph::{point, Font as ab_Font, FontRef, InvalidFont, ScaleFont};
 use image::{DynamicImage, GenericImage, Rgba};
 // use rusttype::{point, Font as RustFont, Scale};
 
@@ -81,8 +81,6 @@ impl Font {
 
             total_advance += advance + Self::default_spacing();
         }
-
-        texture.save("./font_output.png").unwrap();
 
         Ok(Self {
             font_texture: Texture::from_image(

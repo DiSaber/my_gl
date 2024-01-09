@@ -54,7 +54,7 @@ impl<'a> TextObject<'a> {
 
         let mut x = 0.0_f32;
         let y = 0.0_f32;
-        for (i, char) in text.chars().enumerate() {
+        for char in text.chars() {
             let char_info = character_map[&char];
 
             if !char.is_whitespace() {
@@ -64,11 +64,7 @@ impl<'a> TextObject<'a> {
                 let char_width = char_info.width * font_scale;
                 let char_height = font.get_char_height() * font_scale;
 
-                println!(
-                    "{char} {char_x} {char_y} {char_width} {char_height} {:?} {:?}",
-                    char_info.bottom_left_tex_coord, char_info.top_right_tex_coord
-                );
-
+                let face_offset = (vertices.len() / 4) as u32;
                 // TODO: Add multiline support
                 vertices.append(&mut vec![
                     // Top right
@@ -99,10 +95,17 @@ impl<'a> TextObject<'a> {
                     ),
                 ]);
 
-                let i = i as u32;
                 faces.append(&mut vec![
-                    Vector3::new(0 + (i * 4), 1 + (i * 4), 3 + (i * 4)),
-                    Vector3::new(1 + (i * 4), 2 + (i * 4), 3 + (i * 4)),
+                    Vector3::new(
+                        0 + (face_offset * 4),
+                        1 + (face_offset * 4),
+                        3 + (face_offset * 4),
+                    ),
+                    Vector3::new(
+                        1 + (face_offset * 4),
+                        2 + (face_offset * 4),
+                        3 + (face_offset * 4),
+                    ),
                 ]);
             }
 
