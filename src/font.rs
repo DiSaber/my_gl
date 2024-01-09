@@ -44,14 +44,10 @@ impl Font {
             if let Some(glyph) = font.outline_glyph(
                 glyph_id.with_scale_and_position(font.scale, point(total_advance, 0.0)),
             ) {
-                let bottom_left_tex_coord = Vector2::new(
-                    (glyph.px_bounds().min.x + total_advance) / texture_width,
-                    1.0,
-                );
-                let top_right_tex_coord = Vector2::new(
-                    (glyph.px_bounds().max.x + total_advance) / texture_width,
-                    0.0,
-                );
+                let bottom_left_tex_coord =
+                    Vector2::new(glyph.px_bounds().min.x / texture_width, 1.0);
+                let top_right_tex_coord =
+                    Vector2::new(glyph.px_bounds().max.x / texture_width, 0.0);
                 character_map.insert(
                     char,
                     Character {
