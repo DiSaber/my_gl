@@ -48,6 +48,7 @@ impl Font {
         let mut character_map = HashMap::<char, Character>::new();
 
         for (i, glyph) in glyphs.into_iter().enumerate() {
+            println!("{i}");
             let bounding_box = glyph.pixel_bounding_box().unwrap_or_default();
             let bottom_left_tex_coord = Vector2::new((bounding_box.min.x as f32) / set_width, 1.0);
             let top_right_tex_coord = Vector2::new((bounding_box.max.x as f32) / set_width, 0.0);
