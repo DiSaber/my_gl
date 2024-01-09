@@ -1,5 +1,7 @@
-use crate::na::{Matrix4, Orthographic3, Perspective3};
-use crate::{mesh_object::MeshObject, transform::Transform};
+use crate::{
+    na::{Matrix4, Orthographic3, Perspective3},
+    GameObject, Transform,
+};
 use palette::LinSrgba;
 
 #[derive(Clone, Copy)]
@@ -10,8 +12,17 @@ pub enum CameraType {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OrthographicType {
-    UI,
-    World { width: f32, height: f32 },
+    UI { height: f32 },
+    World { height: f32 },
+}
+
+impl OrthographicType {
+    pub fn is_ui(&self) -> bool {
+        match self {
+            OrthographicType::UI { .. } => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -24,8 +35,7 @@ pub struct Camera {
 impl Camera {
     pub fn new_perspective(
         fov: f32,
-        screen_width: i32,
-        screen_height: i32,
+        (screen_width, screen_height): (u32, u32),
         near_clipping_plane: f32,
         far_clipping_plane: f32,
         clear_color: LinSrgba,
@@ -44,13 +54,18 @@ impl Camera {
 
     pub fn new_orthographic(
         orthographic_type: OrthographicType,
+        (screen_width, screen_height): (u32, u32),
         near_clipping_plane: f32,
         far_clipping_plane: f32,
         clear_color: LinSrgba,
     ) -> Self {
         let (left, right, top, bottom) = match orthographic_type {
-            OrthographicType::UI => (0.0, 1.0, 0.0, 1.0),
-            OrthographicType::World { width, height } => {
+            OrthographicType::UI { height } => {
+                let width = height * ((screen_width as f32) / (screen_height as f32));
+                (0.0, width, 0.0, height)
+            }
+            OrthographicType::World { height } => {
+                let width = height * ((screen_width as f32) / (screen_height as f32));
                 (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
             }
         };
@@ -72,18 +87,18 @@ impl Camera {
         }
     }
 
-    pub fn draw_objects(&self, objects: &mut [&MeshObject]) {
+    pub fn draw_objects(&self, objects: &mut [&mut dyn GameObject]) {
         if let CameraType::Orthographic(_, orthographic_type) = self.camera_type {
-            if orthographic_type == OrthographicType::UI {
+            if orthographic_type.is_ui() {
                 unsafe {
                     gl::Disable(gl::DEPTH_TEST);
                 }
 
                 objects.sort_unstable_by(|a, b| {
-                    a.transform
+                    a.get_transform()
                         .position
                         .z
-                        .partial_cmp(&b.transform.position.z)
+                        .partial_cmp(&b.get_transform().position.z)
                         .unwrap()
                 });
 
@@ -126,31 +141,30 @@ impl Camera {
         }
     }
 
-    /// Only applies to perspective cameras
-    pub fn set_screen_size(&mut self, screen_width: i32, screen_height: i32) {
-        if let CameraType::Perspective(perspective) = &mut self.camera_type {
-            unsafe {
-                gl::Viewport(0, 0, screen_width, screen_height);
-            }
-            perspective.set_aspect((screen_width as f32) / (screen_height as f32));
+    /// Applies to all cameras
+    pub fn set_screen_size(&mut self, (screen_width, screen_height): (u32, u32)) {
+        unsafe {
+            gl::Viewport(0, 0, screen_width as i32, screen_height as i32);
         }
-    }
 
-    /// Only applies to orthographic cameras
-    pub fn set_orthographic_type(&mut self, orthographic_type: OrthographicType) {
-        if let CameraType::Orthographic(orthographic, current_orthographic_type) =
+        if let CameraType::Perspective(perspective) = &mut self.camera_type {
+            perspective.set_aspect((screen_width as f32) / (screen_height as f32));
+        } else if let CameraType::Orthographic(orthographic, orthographic_type) =
             &mut self.camera_type
         {
-            let (left, right, top, bottom) = match orthographic_type {
-                OrthographicType::UI => (0.0, 1.0, 0.0, 1.0),
-                OrthographicType::World { width, height } => {
+            let (left, right, top, bottom) = match *orthographic_type {
+                OrthographicType::UI { height } => {
+                    let width = height * ((screen_width as f32) / (screen_height as f32));
+                    (0.0, width, 0.0, height)
+                }
+                OrthographicType::World { height } => {
+                    let width = height * ((screen_width as f32) / (screen_height as f32));
                     (-width / 2.0, width / 2.0, height / 2.0, -height / 2.0)
                 }
             };
 
             orthographic.set_left_and_right(left, right);
             orthographic.set_bottom_and_top(bottom, top);
-            *current_orthographic_type = orthographic_type;
         }
     }
 }

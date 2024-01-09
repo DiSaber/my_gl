@@ -52,8 +52,9 @@ impl Game {
         self.window.get_key(key)
     }
 
-    pub fn get_framebuffer_size(&self) -> (i32, i32) {
-        self.window.get_framebuffer_size()
+    pub fn get_framebuffer_size(&self) -> (u32, u32) {
+        let (x, y) = self.window.get_framebuffer_size();
+        (x as u32, y as u32)
     }
 
     pub fn set_mouse_mode(&mut self, mode: MouseMode) {
