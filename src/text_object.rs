@@ -59,10 +59,7 @@ impl<'a> TextObject<'a> {
 
             if char != ' ' {
                 let char_x = x + (char_info.bearing.x * font_scale);
-                let char_y = y
-                    + (((font.get_line_distance() - char_info.size.y)
-                        + (char_info.size.y - char_info.bearing.y))
-                        * font_scale);
+                let char_y = y + ((char_info.size.y - char_info.bearing.y) * font_scale);
 
                 let char_width = char_info.size.x * font_scale;
                 let char_height = char_info.size.y * font_scale;
