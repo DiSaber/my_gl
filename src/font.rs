@@ -31,7 +31,8 @@ impl Font {
         let texture_width = CHARACTER_SET
             .chars()
             .map(|c| font.h_advance(font.glyph_id(c)))
-            .sum::<f32>();
+            .sum::<f32>()
+            + (CHARACTER_SET.chars().count() as f32 * Self::default_spacing());
         let texture_height = font.height().ceil();
         let mut texture = DynamicImage::new_rgba8(texture_width as u32, texture_height as u32);
         let mut character_map = HashMap::<char, Character>::new();
@@ -43,9 +44,10 @@ impl Font {
             let advance = font.h_advance(glyph_id);
             let bearing_x = font.h_side_bearing(glyph_id);
 
-            if let Some(glyph) = font.outline_glyph(
-                glyph_id.with_scale_and_position(font.scale, point(total_advance, font.ascent())),
-            ) {
+            if let Some(glyph) = font.outline_glyph(glyph_id.with_scale_and_position(
+                Self::default_font_size(),
+                point(total_advance, font.ascent()),
+            )) {
                 let px_bounds = glyph.px_bounds();
                 character_map.insert(
                     char,
@@ -77,7 +79,7 @@ impl Font {
                 );
             }
 
-            total_advance += advance + 8.0;
+            total_advance += advance + Self::default_spacing();
         }
 
         texture.save("./font_output.png").unwrap();
@@ -113,6 +115,10 @@ impl Font {
 
     pub fn default_font_size() -> f32 {
         32.0
+    }
+
+    pub fn default_spacing() -> f32 {
+        8.0
     }
 
     pub fn font_scale(font_size: f32) -> f32 {
