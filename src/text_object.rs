@@ -109,7 +109,7 @@ impl<'a> TextObject<'a> {
                 ]);
             }
 
-            x += char_info.advance;
+            x += char_info.advance * font_scale;
         }
 
         (vertices, faces)
