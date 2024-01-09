@@ -58,12 +58,10 @@ impl<'a> TextObject<'a> {
             let char_info = character_map[&char];
 
             if char != ' ' {
-                println!(
-                    "{:?} {:?}",
-                    char_info.bottom_left_tex_coord, char_info.top_right_tex_coord
-                );
                 let char_x = x + (char_info.bearing.x * font_scale);
                 let char_y = y + ((char_info.size.y - char_info.bearing.y) * font_scale);
+
+                println!("{char} {} {}", char_info.size.y, char_info.bearing.y);
 
                 let char_width = char_info.size.x * font_scale;
                 let char_height = char_info.size.y * font_scale;

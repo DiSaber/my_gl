@@ -32,7 +32,6 @@ impl Font {
             .map(|c| font.h_advance(font.glyph_id(c)))
             .sum::<f32>();
         let texture_height = font.height();
-        println!("{texture_height}");
         let mut texture = DynamicImage::new_rgba8(texture_width as u32, texture_height as u32);
         let mut character_map = HashMap::<char, Character>::new();
         let mut total_advance = 0.0_f32;
