@@ -67,8 +67,8 @@ impl Font {
                 );
                 glyph.draw(|x, y, v| {
                     texture.put_pixel(
-                        x + (total_advance + bearing.x) as u32,
-                        y,
+                        x + px_bounds.min.x as u32,
+                        y + px_bounds.min.y as u32,
                         Rgba([255, 255, 255, (v * 255.0) as u8]),
                     )
                 });
