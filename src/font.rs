@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{na::Vector2, FilterMode, Texture, WrapMode};
-use ab_glyph::{point, Font as ab_Font, FontRef, InvalidFont, ScaleFont};
+use ab_glyph::{point, Font as ab_Font, FontRef, GlyphId, InvalidFont, ScaleFont};
 use image::{DynamicImage, GenericImage, Rgba};
 // use rusttype::{point, Font as RustFont, Scale};
 
@@ -35,12 +35,18 @@ impl Font {
         let texture_height = font.height().ceil();
         let mut texture = DynamicImage::new_rgba8(texture_width as u32, texture_height as u32);
         let mut character_map = HashMap::<char, Character>::new();
+
         let mut total_advance = 0.0_f32;
+        let mut last_char: Option<GlyphId> = None;
 
         for char in CHARACTER_SET.chars() {
             let glyph_id = font.glyph_id(char);
             let advance = font.h_advance(glyph_id);
             let bearing_x = font.h_side_bearing(glyph_id);
+
+            if let Some(last_char) = last_char {
+                total_advance += font.kern(last_char, glyph_id);
+            }
 
             if let Some(glyph) = font.outline_glyph(
                 glyph_id.with_scale_and_position(font.scale, point(total_advance, font.ascent())),
@@ -76,6 +82,7 @@ impl Font {
                 );
             }
 
+            last_char = Some(glyph_id);
             total_advance += advance;
         }
 
