@@ -51,11 +51,11 @@ impl Font {
                     Character {
                         bottom_left_tex_coord: Vector2::new(
                             px_bounds.min.x / texture_width,
-                            px_bounds.max.y / texture_height,
+                            px_bounds.min.y / texture_height,
                         ),
                         top_right_tex_coord: Vector2::new(
                             px_bounds.max.x / texture_width,
-                            px_bounds.min.y / texture_height,
+                            px_bounds.max.y / texture_height,
                         ),
                         size: Vector2::new(
                             px_bounds.max.x - px_bounds.min.x,
