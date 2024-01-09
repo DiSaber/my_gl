@@ -54,10 +54,10 @@ impl Font {
                     Character {
                         bottom_left_tex_coord: Vector2::new(px_bounds.min.x / texture_width, 1.0),
                         top_right_tex_coord: Vector2::new(
-                            (px_bounds.max.x + 1.0) / texture_width,
+                            (px_bounds.max.x + 2.0) / texture_width,
                             0.0,
                         ),
-                        width: px_bounds.width() + 1.0,
+                        width: px_bounds.width() + 2.0,
                         bearing_x,
                         advance,
                     },
