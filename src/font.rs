@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use crate::{na::Vector2, FilterMode, Texture, WrapMode};
+use ab_glyph::{point, Font as ab_Font, FontRef, InvalidFont, ScaleFont};
 use image::{DynamicImage, GenericImage, Rgba};
-use rusttype::{point, Font as RustFont, Scale};
+// use rusttype::{point, Font as RustFont, Scale};
 
 const CHARACTER_SET: &str = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -23,62 +24,60 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn from_bytes(font_bytes: &[u8]) -> Option<Self> {
-        let font = RustFont::try_from_bytes(font_bytes)?;
-        let scale = Scale::uniform(Self::default_font_size());
-        let v_metrics = font.v_metrics(scale);
+    pub fn from_bytes(font_bytes: &[u8]) -> Result<Self, InvalidFont> {
+        let font = FontRef::try_from_slice(font_bytes)?;
+        let font = font.as_scaled(Self::default_font_size());
 
-        let glyphs = font
-            .layout(CHARACTER_SET, scale, point(0.0, 0.0))
-            .collect::<Vec<_>>();
-        let set_height = (v_metrics.ascent - v_metrics.descent).ceil();
-        let set_width = {
-            let min_x = glyphs
-                .first()
-                .map(|g| g.pixel_bounding_box().unwrap_or_default().min.x)
-                .unwrap();
-            let max_x = glyphs
-                .last()
-                .map(|g| g.pixel_bounding_box().unwrap_or_default().max.x)
-                .unwrap();
-            (max_x - min_x) as f32
-        };
-
-        let mut texture = DynamicImage::new_rgba8(set_width as u32, set_height as u32);
+        let texture_width = CHARACTER_SET
+            .chars()
+            .map(|c| font.h_advance(font.glyph_id(c)))
+            .sum::<f32>();
+        let mut texture = DynamicImage::new_rgba8(texture_width as u32, font.height() as u32);
         let mut character_map = HashMap::<char, Character>::new();
+        let mut total_advance = 0.0_f32;
 
-        for (i, glyph) in glyphs.into_iter().enumerate() {
-            println!("{i}");
-            let bounding_box = glyph.pixel_bounding_box().unwrap_or_default();
-            let bottom_left_tex_coord = Vector2::new((bounding_box.min.x as f32) / set_width, 1.0);
-            let top_right_tex_coord = Vector2::new((bounding_box.max.x as f32) / set_width, 0.0);
-            let h_metrics = glyph.unpositioned().h_metrics();
+        for char in CHARACTER_SET.chars() {
+            let glyph_id = font.glyph_id(char);
+            let advance = font.h_advance(glyph_id);
+            let bearing_x = font.h_side_bearing(glyph_id);
 
-            let char = CHARACTER_SET.chars().nth(i).unwrap();
-
-            character_map.insert(
-                char,
-                Character {
-                    bottom_left_tex_coord,
-                    top_right_tex_coord,
-                    width: (bounding_box.max.x - bounding_box.min.x) as f32,
-                    bearing_x: h_metrics.left_side_bearing,
-                    advance: h_metrics.advance_width,
-                },
-            );
-
-            if glyph.pixel_bounding_box().is_some() {
+            if let Some(glyph) = font.outline_glyph(
+                glyph_id.with_scale_and_position(font.scale, point(total_advance, 0.0)),
+            ) {
+                let bottom_left_tex_coord =
+                    Vector2::new((glyph.px_bounds().min.x as f32) / texture_width, 1.0);
+                let top_right_tex_coord =
+                    Vector2::new((glyph.px_bounds().max.x as f32) / texture_width, 0.0);
+                character_map.insert(
+                    char,
+                    Character {
+                        bottom_left_tex_coord,
+                        top_right_tex_coord,
+                        width: (glyph.px_bounds().max.x - glyph.px_bounds().min.x) as f32,
+                        bearing_x,
+                        advance,
+                    },
+                );
                 glyph.draw(|x, y, v| {
-                    texture.put_pixel(
-                        x + bounding_box.min.x as u32,
-                        y + bounding_box.min.y as u32,
-                        Rgba([255, 255, 255, (v * 255.0) as u8]),
-                    )
+                    texture.put_pixel(x, y, Rgba([255, 255, 255, (v * 255.0) as u8]))
                 });
+            } else if char == ' ' {
+                character_map.insert(
+                    char,
+                    Character {
+                        bottom_left_tex_coord: Vector2::zeros(),
+                        top_right_tex_coord: Vector2::zeros(),
+                        width: 0.0,
+                        bearing_x,
+                        advance,
+                    },
+                );
             }
+
+            total_advance += advance;
         }
 
-        Some(Self {
+        Ok(Self {
             font_texture: Texture::from_image(
                 texture,
                 WrapMode::ClampToEdge,
@@ -86,8 +85,8 @@ impl Font {
                 FilterMode::Linear,
             ),
             character_map,
-            font_height: set_height,
-            line_distance: set_height + v_metrics.line_gap,
+            font_height: font.height(),
+            line_distance: font.height() + font.line_gap(),
         })
     }
 

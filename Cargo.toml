@@ -10,10 +10,10 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ab_glyph = "0.2.23"
 gl = "0.14.0"
 glfw = "0.54.0"
 image = "0.24.7"
 nalgebra = "0.32.3"
 palette = "0.7.3"
-rusttype = "0.9.3"
 tobj = "4.0.0"
