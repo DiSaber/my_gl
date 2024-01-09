@@ -66,7 +66,7 @@ impl Font {
                 },
             );
 
-            if char != ' ' {
+            if glyph.pixel_bounding_box().is_some() {
                 glyph.draw(|x, y, v| {
                     texture.put_pixel(
                         x + bounding_box.min.x as u32,
