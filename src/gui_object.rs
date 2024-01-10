@@ -7,6 +7,7 @@ pub trait GUIObject: GameObject {
     fn get_aligned_transform_matrix(&self, screen_size: Vector2<u32>) -> Matrix4<f32>;
     /// This operation is potentially expensive! Updates any internal gui state such as auto sizing.
     fn force_update(&mut self);
+    fn get_size(&self) -> Vector2<f32>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -202,4 +202,12 @@ impl<'a> GUIObject for TextObject<'a> {
             }
         }
     }
+
+    fn get_size(&self) -> Vector2<f32> {
+        // Get the most up-to-date size
+        match self.size {
+            Size::Auto => self.internal_size,
+            Size::Manual(size) => size,
+        }
+    }
 }
