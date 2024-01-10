@@ -1,8 +1,9 @@
 use palette::LinSrgba;
 
 use crate::{
+    gui_object::GUIObject,
     na::{Matrix4, Vector2, Vector3, Vector4},
-    Font, GameObject, Mesh, ProgramValue, ShaderProgram, Transform, UsageType, Vertex,
+    Alignment, Font, GameObject, Mesh, ProgramValue, ShaderProgram, Transform, UsageType, Vertex,
 };
 
 pub struct TextObject<'a> {
@@ -11,9 +12,11 @@ pub struct TextObject<'a> {
     pub text: String,
     pub font_size: u32,
     pub text_color: LinSrgba,
+    pub alignment: Alignment,
     font: &'a Font,
     internal_text: String,
     internal_font_size: u32,
+    internal_size: Vector2<f32>,
     internal_mesh: Mesh,
 }
 
@@ -22,11 +25,12 @@ impl<'a> TextObject<'a> {
         initial_text: String,
         font_size: u32,
         text_color: LinSrgba,
+        alignment: Alignment,
         shader_program: &'a ShaderProgram,
         font: &'a Font,
         usage_type: UsageType,
     ) -> Self {
-        let (vertices, faces) = Self::generate_mesh(font, &initial_text, font_size);
+        let (vertices, faces, size) = Self::generate_mesh(font, &initial_text, font_size);
 
         Self {
             shader_program,
@@ -35,8 +39,10 @@ impl<'a> TextObject<'a> {
             font_size,
             font,
             text_color,
+            alignment,
             internal_text: initial_text,
             internal_font_size: font_size,
+            internal_size: size,
             internal_mesh: Mesh::from_vertices(&vertices, &faces, usage_type),
         }
     }
@@ -45,10 +51,11 @@ impl<'a> TextObject<'a> {
         font: &'a Font,
         text: &str,
         font_size: u32,
-    ) -> (Vec<Vertex>, Vec<Vector3<u32>>) {
+    ) -> (Vec<Vertex>, Vec<Vector3<u32>>, Vector2<f32>) {
         let character_map = font.get_character_map();
         let mut vertices = Vec::<Vertex>::with_capacity(text.chars().count() * 4);
         let mut faces = Vec::<Vector3<u32>>::with_capacity(text.chars().count() * 2);
+        let mut size = Vector2::zeros();
 
         let font_scale = Font::font_scale(font_size as f32);
 
@@ -108,24 +115,39 @@ impl<'a> TextObject<'a> {
                 }
 
                 x += char_info.advance * font_scale;
+                if x > size.x {
+                    size.x = x;
+                }
             } else if char == '\n' {
                 x = 0.0;
                 y += font.get_line_distance() * font_scale;
             }
         }
 
-        (vertices, faces)
+        size.y = y + (font.get_line_distance() * font_scale);
+
+        (vertices, faces, size)
     }
 }
 
 impl<'a> GameObject for TextObject<'a> {
     fn draw(&mut self, camera: &crate::Camera) {
+        if self.internal_text != self.text || self.internal_font_size != self.font_size {
+            let (vertices, faces, size) =
+                Self::generate_mesh(self.font, &self.text, self.font_size);
+            self.internal_mesh.update_vertices(&vertices, &faces);
+
+            self.internal_text = self.text.clone();
+            self.internal_font_size = self.font_size;
+            self.internal_size = size;
+        }
+
         self.shader_program.set_value(
             "transform",
             ProgramValue::Mat4(
                 camera.get_projection_matrix()
                     * camera.get_transform_matrix()
-                    * self.get_transform_matrix(),
+                    * self.get_aligned_transform_matrix(camera.get_screen_size()),
             ),
         );
         self.shader_program.set_value(
@@ -138,14 +160,6 @@ impl<'a> GameObject for TextObject<'a> {
             )),
         );
 
-        if self.internal_text != self.text || self.internal_font_size != self.font_size {
-            let (vertices, faces) = Self::generate_mesh(self.font, &self.text, self.font_size);
-            self.internal_mesh.update_vertices(&vertices, &faces);
-
-            self.internal_text = self.text.clone();
-            self.internal_font_size = self.font_size;
-        }
-
         self.internal_mesh.draw(&[self.font.get_texture()]);
     }
 
@@ -155,5 +169,23 @@ impl<'a> GameObject for TextObject<'a> {
 
     fn get_transform_matrix(&self) -> Matrix4<f32> {
         self.transform.to_matrix(false)
+    }
+}
+
+impl<'a> GUIObject for TextObject<'a> {
+    fn get_aligned_transform_matrix(&self, screen_size: Vector2<u32>) -> Matrix4<f32> {
+        Transform {
+            position: self.alignment.align_position(
+                self.transform.position,
+                Vector2::new(
+                    self.internal_size.x * self.transform.scale.x,
+                    self.internal_size.y * self.transform.scale.y,
+                ),
+                screen_size,
+            ),
+            rotation: self.transform.rotation,
+            scale: self.transform.scale,
+        }
+        .to_matrix(false)
     }
 }

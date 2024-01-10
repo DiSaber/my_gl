@@ -30,6 +30,7 @@ pub struct Camera {
     pub transform: Transform,
     pub camera_type: CameraType,
     pub clear_color: LinSrgba,
+    screen_size: Vector2<u32>,
 }
 
 impl Camera {
@@ -49,6 +50,7 @@ impl Camera {
                 far_clipping_plane,
             )),
             clear_color,
+            screen_size,
         }
     }
 
@@ -84,6 +86,7 @@ impl Camera {
                 orthographic_type,
             ),
             clear_color,
+            screen_size: Vector2::new((left - right).abs() as u32, (top - bottom).abs() as u32),
         }
     }
 
@@ -121,7 +124,7 @@ impl Camera {
     pub fn get_projection_matrix(&self) -> Matrix4<f32> {
         match self.camera_type {
             CameraType::Perspective(perspective) => perspective.into(),
-            CameraType::Orthographic(orthographic, _) => orthographic.into(),
+            CameraType::Orthographic(orthographic, ..) => orthographic.into(),
         }
     }
 
@@ -141,13 +144,13 @@ impl Camera {
         }
     }
 
-    /// Applies to all cameras
     pub fn set_screen_size(&mut self, screen_size: Vector2<u32>) {
         unsafe {
             gl::Viewport(0, 0, screen_size.x as i32, screen_size.y as i32);
         }
 
         if let CameraType::Perspective(perspective) = &mut self.camera_type {
+            self.screen_size = screen_size;
             perspective.set_aspect((screen_size.x as f32) / (screen_size.y as f32));
         } else if let CameraType::Orthographic(orthographic, orthographic_type) =
             &mut self.camera_type
@@ -163,8 +166,15 @@ impl Camera {
                 }
             };
 
+            self.screen_size =
+                Vector2::new((left - right).abs() as u32, (top - bottom).abs() as u32);
+
             orthographic.set_left_and_right(left, right);
             orthographic.set_bottom_and_top(bottom, top);
         }
+    }
+
+    pub fn get_screen_size(&self) -> Vector2<u32> {
+        self.screen_size
     }
 }
