@@ -9,14 +9,15 @@ use crate::{
 pub struct TextObject<'a> {
     pub shader_program: &'a ShaderProgram,
     pub transform: Transform,
-    pub text: String,
-    pub font_size: u32,
+    text: String,
+    font_size: u32,
     pub text_color: LinSrgba,
     pub size: Size,
     pub alignment: Alignment,
     font: &'a Font,
-    internal_text: String,
-    internal_font_size: u32,
+    text_changed: bool,
+    font_size_changed: bool,
+    font_changed: bool,
     internal_size: Vector2<f32>,
     internal_mesh: Mesh,
 }
@@ -25,9 +26,6 @@ impl<'a> TextObject<'a> {
     pub fn new(
         initial_text: String,
         font_size: u32,
-        text_color: LinSrgba,
-        size: Size,
-        alignment: Alignment,
         shader_program: &'a ShaderProgram,
         font: &'a Font,
         usage_type: UsageType,
@@ -40,17 +38,57 @@ impl<'a> TextObject<'a> {
             text: initial_text.clone(),
             font_size,
             font,
-            text_color,
-            size,
-            alignment,
-            internal_text: initial_text,
-            internal_font_size: font_size,
-            internal_size: match size {
-                Size::Auto => mesh_size,
-                Size::Manual(size) => size,
-            },
+            text_color: LinSrgba::new(1.0, 1.0, 1.0, 1.0),
+            size: Size::Auto,
+            alignment: Alignment::TopLeft,
+            text_changed: false,
+            font_size_changed: false,
+            font_changed: false,
+            internal_size: mesh_size,
             internal_mesh: Mesh::from_vertices(&vertices, &faces, usage_type),
         }
+    }
+
+    pub fn with_text_color(mut self, text_color: LinSrgba) -> Self {
+        self.text_color = text_color;
+        self
+    }
+
+    pub fn with_size(mut self, size: Size) -> Self {
+        self.size = size;
+        self
+    }
+
+    pub fn with_alignment(mut self, alignment: Alignment) -> Self {
+        self.alignment = alignment;
+        self
+    }
+
+    pub fn get_text(&self) -> &str {
+        &self.text
+    }
+
+    pub fn set_text(&mut self, text: String) {
+        self.text = text;
+        self.text_changed = true;
+    }
+
+    pub fn get_font_size(&self) -> u32 {
+        self.font_size
+    }
+
+    pub fn set_font_size(&mut self, font_size: u32) {
+        self.font_size = font_size;
+        self.font_size_changed = true;
+    }
+
+    pub fn get_font(&self) -> &Font {
+        self.font
+    }
+
+    pub fn set_font(&mut self, font: &'a Font) {
+        self.font = font;
+        self.font_changed = true;
     }
 
     fn generate_mesh(
@@ -172,33 +210,28 @@ impl<'a> GameObject for TextObject<'a> {
 
 impl<'a> GUIObject for TextObject<'a> {
     fn get_aligned_transform_matrix(&self, screen_size: Vector2<u32>) -> Matrix4<f32> {
-        Transform {
-            position: self.alignment.align_position(
-                self.transform.position,
-                Vector2::new(
-                    self.internal_size.x * self.transform.scale.x,
-                    self.internal_size.y * self.transform.scale.y,
-                ),
-                screen_size,
+        let mut transform = self.transform;
+        transform.position = self.alignment.align_position(
+            self.transform.position,
+            Vector2::new(
+                self.get_size().x * self.transform.scale.x,
+                self.get_size().y * self.transform.scale.y,
             ),
-            rotation: self.transform.rotation,
-            scale: self.transform.scale,
-        }
-        .to_matrix(false)
+            screen_size,
+        );
+        transform.to_matrix(false)
     }
 
     fn force_update(&mut self) {
-        if self.internal_text != self.text || self.internal_font_size != self.font_size {
+        if self.text_changed || self.font_size_changed || self.font_changed {
             let (vertices, faces, mesh_size) =
                 Self::generate_mesh(self.font, &self.text, self.font_size);
             self.internal_mesh.update_vertices(&vertices, &faces);
 
-            self.internal_text = self.text.clone();
-            self.internal_font_size = self.font_size;
-            self.internal_size = match self.size {
-                Size::Auto => mesh_size,
-                Size::Manual(size) => size,
-            }
+            self.text_changed = false;
+            self.font_size_changed = false;
+            self.font_changed = false;
+            self.internal_size = mesh_size;
         }
     }
 

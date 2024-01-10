@@ -7,8 +7,8 @@ use crate::{
 #[derive(Clone)]
 pub struct MeshObject<'a> {
     pub mesh: &'a Mesh,
-    textures: Vec<&'a Texture>,
-    shader_program: &'a ShaderProgram,
+    pub textures: Vec<&'a Texture>,
+    pub shader_program: &'a ShaderProgram,
     pub transform: Transform,
 }
 
