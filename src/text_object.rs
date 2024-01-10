@@ -1,10 +1,9 @@
 use palette::LinSrgba;
 
 use crate::{
-    gui_object::GUIObject,
     na::{Matrix4, Vector2, Vector3, Vector4},
-    Alignment, Font, GameObject, Mesh, ProgramValue, ShaderProgram, Size, Transform, UsageType,
-    Vertex,
+    Alignment, Font, GUIObject, GameObject, Mesh, ProgramValue, ShaderProgram, Size, Transform,
+    UsageType, Vertex,
 };
 
 pub struct TextObject<'a> {

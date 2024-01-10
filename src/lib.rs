@@ -18,7 +18,7 @@ pub use font::Font;
 pub use game::Game;
 pub use game_object::GameObject;
 pub use glfw::{self, Action, CursorMode as MouseMode, Key, WindowMode};
-pub use gui_object::{Alignment, Size};
+pub use gui_object::{Alignment, GUIObject, Size};
 pub use image;
 pub use mesh::{Mesh, UsageType};
 pub use mesh_object::MeshObject;
