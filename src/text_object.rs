@@ -3,7 +3,8 @@ use palette::LinSrgba;
 use crate::{
     gui_object::GUIObject,
     na::{Matrix4, Vector2, Vector3, Vector4},
-    Alignment, Font, GameObject, Mesh, ProgramValue, ShaderProgram, Transform, UsageType, Vertex,
+    Alignment, Font, GameObject, Mesh, ProgramValue, ShaderProgram, Size, Transform, UsageType,
+    Vertex,
 };
 
 pub struct TextObject<'a> {
@@ -12,6 +13,7 @@ pub struct TextObject<'a> {
     pub text: String,
     pub font_size: u32,
     pub text_color: LinSrgba,
+    pub size: Size,
     pub alignment: Alignment,
     font: &'a Font,
     internal_text: String,
@@ -25,12 +27,13 @@ impl<'a> TextObject<'a> {
         initial_text: String,
         font_size: u32,
         text_color: LinSrgba,
+        size: Size,
         alignment: Alignment,
         shader_program: &'a ShaderProgram,
         font: &'a Font,
         usage_type: UsageType,
     ) -> Self {
-        let (vertices, faces, size) = Self::generate_mesh(font, &initial_text, font_size);
+        let (vertices, faces, mesh_size) = Self::generate_mesh(font, &initial_text, font_size);
 
         Self {
             shader_program,
@@ -39,10 +42,14 @@ impl<'a> TextObject<'a> {
             font_size,
             font,
             text_color,
+            size,
             alignment,
             internal_text: initial_text,
             internal_font_size: font_size,
-            internal_size: size,
+            internal_size: match size {
+                Size::Auto => mesh_size,
+                Size::Manual(size) => size,
+            },
             internal_mesh: Mesh::from_vertices(&vertices, &faces, usage_type),
         }
     }
@@ -132,15 +139,7 @@ impl<'a> TextObject<'a> {
 
 impl<'a> GameObject for TextObject<'a> {
     fn draw(&mut self, camera: &crate::Camera) {
-        if self.internal_text != self.text || self.internal_font_size != self.font_size {
-            let (vertices, faces, size) =
-                Self::generate_mesh(self.font, &self.text, self.font_size);
-            self.internal_mesh.update_vertices(&vertices, &faces);
-
-            self.internal_text = self.text.clone();
-            self.internal_font_size = self.font_size;
-            self.internal_size = size;
-        }
+        self.force_update();
 
         self.shader_program.set_value(
             "transform",
@@ -187,5 +186,20 @@ impl<'a> GUIObject for TextObject<'a> {
             scale: self.transform.scale,
         }
         .to_matrix(false)
+    }
+
+    fn force_update(&mut self) {
+        if self.internal_text != self.text || self.internal_font_size != self.font_size {
+            let (vertices, faces, mesh_size) =
+                Self::generate_mesh(self.font, &self.text, self.font_size);
+            self.internal_mesh.update_vertices(&vertices, &faces);
+
+            self.internal_text = self.text.clone();
+            self.internal_font_size = self.font_size;
+            self.internal_size = match self.size {
+                Size::Auto => mesh_size,
+                Size::Manual(size) => size,
+            }
+        }
     }
 }

@@ -5,6 +5,8 @@ use crate::{
 
 pub trait GUIObject: GameObject {
     fn get_aligned_transform_matrix(&self, screen_size: Vector2<u32>) -> Matrix4<f32>;
+    /// This operation is potentially expensive! Updates any internal gui state such as auto sizing.
+    fn force_update(&mut self);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,4 +73,10 @@ impl Alignment {
             ),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Size {
+    Auto,
+    Manual(Vector2<f32>),
 }
