@@ -15,9 +15,7 @@ pub struct TextObject<'a> {
     pub size: Size,
     pub alignment: Alignment,
     font: &'a Font,
-    text_changed: bool,
-    font_size_changed: bool,
-    font_changed: bool,
+    must_update: bool,
     internal_size: Vector2<f32>,
     internal_mesh: Mesh,
 }
@@ -41,9 +39,7 @@ impl<'a> TextObject<'a> {
             text_color: LinSrgba::new(1.0, 1.0, 1.0, 1.0),
             size: Size::Auto,
             alignment: Alignment::TopLeft,
-            text_changed: false,
-            font_size_changed: false,
-            font_changed: false,
+            must_update: false,
             internal_size: mesh_size,
             internal_mesh: Mesh::from_vertices(&vertices, &faces, usage_type),
         }
@@ -70,7 +66,7 @@ impl<'a> TextObject<'a> {
 
     pub fn set_text(&mut self, text: String) {
         self.text = text;
-        self.text_changed = true;
+        self.must_update = true;
     }
 
     pub fn get_font_size(&self) -> u32 {
@@ -79,7 +75,7 @@ impl<'a> TextObject<'a> {
 
     pub fn set_font_size(&mut self, font_size: u32) {
         self.font_size = font_size;
-        self.font_size_changed = true;
+        self.must_update = true;
     }
 
     pub fn get_font(&self) -> &Font {
@@ -88,7 +84,7 @@ impl<'a> TextObject<'a> {
 
     pub fn set_font(&mut self, font: &'a Font) {
         self.font = font;
-        self.font_changed = true;
+        self.must_update = true;
     }
 
     fn generate_mesh(
@@ -223,14 +219,12 @@ impl<'a> GUIObject for TextObject<'a> {
     }
 
     fn force_update(&mut self) {
-        if self.text_changed || self.font_size_changed || self.font_changed {
+        if self.must_update {
             let (vertices, faces, mesh_size) =
                 Self::generate_mesh(self.font, &self.text, self.font_size);
             self.internal_mesh.update_vertices(&vertices, &faces);
 
-            self.text_changed = false;
-            self.font_size_changed = false;
-            self.font_changed = false;
+            self.must_update = false;
             self.internal_size = mesh_size;
         }
     }
